@@ -90,8 +90,8 @@ type object struct {
 }
 
 func (o object) Type() nodeType              { return ntObject }
-func (o object) Addr() Addr                { return o.addr }
-func (o *object) SetAddr(addr Addr)        { o.addr = addr }
+func (o object) Addr() Addr                  { return o.addr }
+func (o *object) SetAddr(addr Addr)          { o.addr = addr }
 func (o object) Hash() []byte                { return o.hash }
 func (o object) Weight() int                 { return o.weight }
 func (o object) Parent() node                { return o.parent }
@@ -135,8 +135,8 @@ type array struct {
 }
 
 func (c array) Type() nodeType              { return ntArray }
-func (c array) Addr() Addr                { return c.addr }
-func (c *array) SetAddr(addr Addr)        { c.addr = addr }
+func (c array) Addr() Addr                  { return c.addr }
+func (c *array) SetAddr(addr Addr)          { c.addr = addr }
 func (c array) Hash() []byte                { return c.hash }
 func (c array) Weight() int                 { return c.weight }
 func (c array) Parent() node                { return c.parent }
@@ -174,8 +174,8 @@ type scalar struct {
 }
 
 func (s scalar) Type() nodeType              { return s.t }
-func (s scalar) Addr() Addr                { return s.addr }
-func (s *scalar) SetAddr(addr Addr)        { s.addr = addr }
+func (s scalar) Addr() Addr                  { return s.addr }
+func (s *scalar) SetAddr(addr Addr)          { s.addr = addr }
 func (s scalar) Hash() []byte                { return s.hash }
 func (s scalar) Weight() int                 { return s.weight }
 func (s scalar) Parent() node                { return s.parent }
@@ -249,6 +249,26 @@ func tree(v interface{}, addr Addr, parent node, nodes chan node) (n node) {
 		}
 	case int64:
 		istr := strconv.FormatInt(x, 10)
+		n = &scalar{
+			t:      ntInt,
+			addr:   addr,
+			hash:   NewHash().Sum([]byte(istr)),
+			parent: parent,
+			value:  v,
+			weight: len(istr),
+		}
+	case int32:
+		istr := strconv.FormatInt(int64(x), 10)
+		n = &scalar{
+			t:      ntInt,
+			addr:   addr,
+			hash:   NewHash().Sum([]byte(istr)),
+			parent: parent,
+			value:  v,
+			weight: len(istr),
+		}
+	case int:
+		istr := strconv.Itoa(x)
 		n = &scalar{
 			t:      ntInt,
 			addr:   addr,
@@ -427,7 +447,6 @@ func walkSorted(tree node, path []Addr, fn func(path []Addr, n node) bool) {
 		}
 	}
 }
-
 
 // walk a tree in bottom up (postfix) order
 func walkPostfix(tree node, path []Addr, fn func(path []Addr, n node)) {
